@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	log "k8s.io/klog"
 )
 
 // SetFlagsFromEnv parses all registered flags in the given flagset,
@@ -17,11 +19,14 @@ func SetFlagsFromEnv(fs *flag.FlagSet, prefix string) (err error) {
 	alreadySet := make(map[string]bool)
 	fs.Visit(func(f *flag.Flag) {
 		alreadySet[f.Name] = true
+		log.Infof("alread_set=%v", f.Name)
 	})
 	fs.VisitAll(func(f *flag.Flag) {
+		log.Infof("check name=%v", f.Name)
 		if !alreadySet[f.Name] {
 			key := prefix + "_" + strings.ToUpper(strings.Replace(f.Name, "-", "_", -1))
 			val := os.Getenv(key)
+			log.Infof("get from env name=%v key=%v value=%v", f.Name, key, val)
 			if val != "" {
 				if serr := fs.Set(f.Name, val); serr != nil {
 					err = fmt.Errorf("invalid value %q for %s: %v", val, key, serr)
